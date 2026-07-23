@@ -65,6 +65,11 @@ database, provisioned automatically by `stancl/tenancy`.
 - Tenant Sanctum tokens + `password_reset_tokens` live in the tenant DB (see `database/migrations/tenant/..._create_tenant_auth_tables.php`); super-admin tokens live in central.
 - Access tokens last 24h (ability `access`), refresh tokens 30d (ability `refresh`); `/auth/refresh` requires the refresh token. Login is rate-limited (`throttle:login`, 5/min/IP, defined in `AppServiceProvider`) and accounts lock for 15 min after 10 failed attempts (`Lockable` trait). All attempts are written to the central `login_logs` table. Permissions in responses come from `config/roles.php` (role→permissions); `role:...` middleware (`CheckRole`) gates by the user's role column.
 
+### Super Admin dashboard API
+- Central endpoints under `/api/v1/super-admin/*` (schools, plans, invoices, analytics) require `auth:sanctum` + the `super_admin` middleware (`EnsureSuperAdmin`).
+- School onboarding (`POST /super-admin/schools`) runs through `TenantOnboardingService`: it creates the central tenant row (which triggers stancl's create-DB + migrate pipeline), the subdomain, and the principal user, then emails credentials. It is NOT a SQL transaction (CREATE DATABASE can't be rolled back) — on failure it compensates by ending tenancy and `forceDelete()`-ing the tenant (which drops the DB). Always end tenancy before dropping a tenant DB or the open connection blocks `DROP DATABASE`.
+- `Tenant` uses SoftDeletes. A normal `delete()` (DELETE `/schools/{id}`) soft-deletes and KEEPS the tenant database; only `forceDelete()` drops the DB. This is enforced in `TenancyServiceProvider` (the `TenantDeleted` listener drops the DB only when `isForceDeleting()`). `deleted_at` is listed in `Tenant::getCustomColumns()` so the virtual-column trait keeps it a real column.
+
 ### Lint / test / build
 - Lint: `./vendor/bin/pint` (auto-fix) or `./vendor/bin/pint --test` (check only).
 - Tests: `php artisan test`. Test env (see `phpunit.xml`) uses array cache/session

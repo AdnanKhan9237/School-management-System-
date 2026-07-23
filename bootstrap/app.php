@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsureTenantIsActive;
 use App\Http\Middleware\IdentifyTenant;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
@@ -24,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant.identify' => IdentifyTenant::class,
             'tenant.active' => EnsureTenantIsActive::class,
             'role' => CheckRole::class,
+            'super_admin' => EnsureSuperAdmin::class,
         ]);
 
         // Ensure tenant identification runs before route auth so Sanctum reads

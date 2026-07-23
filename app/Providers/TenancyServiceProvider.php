@@ -43,11 +43,14 @@ class TenancyServiceProvider extends ServiceProvider
             Events\TenantUpdated::class => [],
             Events\DeletingTenant::class => [],
             Events\TenantDeleted::class => [
-                JobPipeline::make([
-                    Jobs\DeleteDatabase::class,
-                ])->send(function (Events\TenantDeleted $event) {
-                    return $event->tenant;
-                })->shouldBeQueued(false), // `false` by default, but you probably want to make this `true` for production.
+                // Only drop the tenant database on a *force* delete. A soft delete
+                // (DELETE /schools/{id}) keeps the database so the school can be
+                // restored later.
+                function (Events\TenantDeleted $event) {
+                    if ($event->tenant->isForceDeleting()) {
+                        (new Jobs\DeleteDatabase($event->tenant))->handle();
+                    }
+                },
             ],
 
             // Domain events

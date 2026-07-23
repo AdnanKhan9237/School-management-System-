@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('password');
             $table->enum('role', ['principal', 'teacher', 'student', 'parent', 'accountant']);
             $table->string('avatar')->nullable();
-            $table->enum('gender', ['male', 'female', 'other']);
+            $table->enum('gender', ['male', 'female', 'other'])->nullable();
             $table->date('date_of_birth')->nullable();
             $table->string('address')->nullable();
             $table->string('city')->nullable();

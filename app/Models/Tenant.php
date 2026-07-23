@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
@@ -15,6 +16,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 {
     use HasDatabase;
     use HasDomains;
+    use SoftDeletes;
 
     /**
      * Attributes that are stored as top-level columns (everything else is
@@ -36,6 +38,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'onboarded_at',
             'suspended_at',
             'suspension_reason',
+            'deleted_at',
         ];
     }
 
