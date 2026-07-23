@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToSchool;
+use App\Models\Concerns\Lockable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -20,7 +21,8 @@ use Spatie\Permission\Traits\HasRoles;
  * Per-tenant (school) user: principal, teacher, student, parent, accountant.
  *
  * Note: roles/permissions (spatie) require the permission tables to exist in
- * the tenant database if you use tenant-scoped roles.
+ * the tenant database if you use tenant-scoped roles. Endpoint responses expose
+ * a permission list derived from the user's role (see config/roles.php).
  */
 class User extends Authenticatable
 {
@@ -29,6 +31,7 @@ class User extends Authenticatable
     use HasApiTokens;
     use HasRoles;
     use HasUuids;
+    use Lockable;
     use Notifiable;
     use SoftDeletes;
 
@@ -63,7 +66,19 @@ class User extends Authenticatable
             'date_of_birth' => 'date',
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'locked_until' => 'datetime',
+            'failed_login_attempts' => 'integer',
         ];
+    }
+
+    /**
+     * Permission list derived from the user's role (config/roles.php).
+     *
+     * @return array<int, string>
+     */
+    public function permissions(): array
+    {
+        return config('roles.'.$this->role, []);
     }
 
     public function student(): HasOne

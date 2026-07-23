@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('avatar')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamp('last_login_at')->nullable();
+            $table->unsignedInteger('failed_login_attempts')->default(0);
+            $table->timestamp('locked_until')->nullable();
 
             $table->timestamps();
             $table->softDeletes();

@@ -59,6 +59,12 @@ database, provisioned automatically by `stancl/tenancy`.
   (`gen_random_uuid()`) and its `school_id` is set via `withPivotValue`, so
   `belongsToMany::attach()` works.
 
+### Authentication
+- Super admin (central): `POST /api/v1/super-admin/{login,logout,me}` — auth via `SuperAdmin`.
+- School users (tenant): `POST /api/v1/auth/{login,logout,refresh,forgot-password,reset-password,change-password}` + `GET /api/v1/auth/me`. These require the tenant to be resolved: send header `X-Tenant: <slug>` (or use the subdomain). `IdentifyTenant` + `EnsureTenantIsActive` middleware run first; `IdentifyTenant`/`EnsureTenantIsActive` are added to the middleware priority list (bootstrap/app.php) so they run before `auth:sanctum`, letting Sanctum read tokens from the tenant DB.
+- Tenant Sanctum tokens + `password_reset_tokens` live in the tenant DB (see `database/migrations/tenant/..._create_tenant_auth_tables.php`); super-admin tokens live in central.
+- Access tokens last 24h (ability `access`), refresh tokens 30d (ability `refresh`); `/auth/refresh` requires the refresh token. Login is rate-limited (`throttle:login`, 5/min/IP, defined in `AppServiceProvider`) and accounts lock for 15 min after 10 failed attempts (`Lockable` trait). All attempts are written to the central `login_logs` table. Permissions in responses come from `config/roles.php` (role→permissions); `role:...` middleware (`CheckRole`) gates by the user's role column.
+
 ### Lint / test / build
 - Lint: `./vendor/bin/pint` (auto-fix) or `./vendor/bin/pint --test` (check only).
 - Tests: `php artisan test`. Test env (see `phpunit.xml`) uses array cache/session
