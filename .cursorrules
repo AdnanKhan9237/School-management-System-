@@ -1,0 +1,85 @@
+You are an expert Laravel 11 + Next.js 15 + Flutter developer building a
+Multi-Tenant SaaS School Management System for Pakistani schools.
+
+## PROJECT OVERVIEW
+- Platform: Multi-tenant SaaS where each school is a tenant
+- Super Admin manages all schools from one dashboard
+- Each school gets its own subdomain: schoolname.yourdomain.com
+- Tech Stack: Laravel 11 (backend API), Next.js 15 (frontend), Flutter (mobile), PostgreSQL (DB), Redis (cache)
+
+## ARCHITECTURE RULES
+- Multi-tenancy: stancl/tenancy package, subdomain-based identification
+- Every database table MUST have school_id for tenant isolation
+- Authentication: Laravel Sanctum with JWT tokens
+- Authorization: Spatie Laravel Permission (RBAC)
+- Roles: super_admin, principal, teacher, student, parent, accountant
+- API: RESTful, versioned (/api/v1/), JSON responses only
+- All money values store in PAISA (smallest unit), display in PKR
+- Dates: store UTC, display in Pakistan Standard Time (UTC+5)
+
+## BACKEND CONVENTIONS (Laravel)
+- Use Repository Pattern for all database operations
+- Use Service classes for business logic
+- Use Form Requests for all validation
+- Use API Resources for all responses
+- Use Laravel Events + Listeners for notifications
+- Always use database transactions for financial operations
+- Soft deletes on all important models (students, fees, etc.)
+- Use Laravel Policies for authorization
+
+## FRONTEND CONVENTIONS (Next.js)
+- Use TypeScript everywhere — no plain JS
+- Use shadcn/ui for all UI components
+- Use Tanstack Query (React Query) for all API calls
+- Use Zustand for global state
+- Use Zod for form validation
+- Use next/image for all images
+- Dark mode support via next-themes
+- Tailwind CSS for styling — no custom CSS files
+
+## FLUTTER CONVENTIONS
+- Use Riverpod for state management
+- Use Dio for HTTP calls
+- Use go_router for navigation
+- Use flutter_secure_storage for tokens
+
+## CODE STYLE
+- PHP: PSR-12 coding standard
+- TypeScript: strict mode enabled
+- Always add loading states and error states in UI
+- Always handle network errors gracefully
+- Never expose sensitive data in API responses
+- Log all errors using Laravel Log facade
+
+## DATABASE
+- PostgreSQL 16
+- Use UUID as primary keys (not auto-increment integers)
+- Add created_at, updated_at, deleted_at to all tables
+- Add school_id (UUID, indexed) to all tenant tables
+- Add created_by (UUID) to important tables
+- Use database migrations — never modify DB manually
+
+## SECURITY
+- Never store plain text passwords
+- Validate and sanitize all inputs
+- Use prepared statements (Eloquent handles this)
+- Rate limit all API endpoints
+- Require authentication on all routes except login/register
+- Log all failed authentication attempts
+
+## RESPONSE FORMAT
+Always return responses in this format:
+{
+  "success": true/false,
+  "message": "Human readable message",
+  "data": {} or [],
+  "errors": {} (only on validation failure)
+}
+
+## PAKISTAN-SPECIFIC
+- Currency: PKR (Pakistani Rupee), store in paisa
+- Phone numbers: +92XXXXXXXXXX format
+- Payment gateways: JazzCash, EasyPaisa, Bank transfer
+- SMS: Twilio or local gateway
+- WhatsApp notifications for parents
+- Urdu language support (store as UTF-8)
