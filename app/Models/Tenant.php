@@ -23,7 +23,28 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         return [
             'id',
             'name',
+            'slug',
+            'domain',
+            'database',
             'plan',
+            'status',
+            'trial_ends_at',
+            'max_students',
+            'max_teachers',
+            'onboarded_at',
+            'suspended_at',
+            'suspension_reason',
+        ];
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'trial_ends_at' => 'datetime',
+            'onboarded_at' => 'datetime',
+            'suspended_at' => 'datetime',
+            'max_students' => 'integer',
+            'max_teachers' => 'integer',
         ];
     }
 }

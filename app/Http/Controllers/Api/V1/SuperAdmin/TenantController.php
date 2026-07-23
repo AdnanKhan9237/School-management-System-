@@ -22,17 +22,15 @@ class TenantController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'id' => ['required', 'string', 'alpha_dash', 'unique:tenants,id'],
             'name' => ['required', 'string'],
-            'subdomain' => ['required', 'string'],
-            'plan' => ['sometimes', 'string'],
+            'slug' => ['required', 'string', 'alpha_dash', 'unique:tenants,slug'],
+            'plan' => ['sometimes', 'in:basic,standard,premium'],
         ]);
 
         $tenant = $this->tenantService->createTenant(
-            $validated['id'],
             $validated['name'],
-            $validated['subdomain'],
-            $validated['plan'] ?? 'free',
+            $validated['slug'],
+            $validated['plan'] ?? 'basic',
         );
 
         return response()->json($tenant->load('domains'), 201);

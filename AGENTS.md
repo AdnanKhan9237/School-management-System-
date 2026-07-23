@@ -33,7 +33,14 @@ database, provisioned automatically by `stancl/tenancy`.
   `database/migrations/tenant/` and run per-tenant. Run them with
   `php artisan tenants:migrate` (creating a tenant auto-migrates its DB via the
   `TenantCreated` job pipeline in `App\Providers\TenancyServiceProvider`).
-- To run code in a tenant's context from tinker: `Tenant::find('acme')->run(fn() => ...)`.
+- To run code in a tenant's context from tinker: `Tenant::find($id)->run(fn() => ...)`.
+- Central registry tables (`tenants`, `super_admins`, `subscription_plans`,
+  `tenant_subscriptions`, `invoices`) use `uuid` primary keys, so `domains.tenant_id`
+  is also `uuid` (Postgres requires matching FK types). The `tenants` table is still
+  managed by stancl's virtual-column model: business columns are declared in
+  `App\Models\Tenant::getCustomColumns()` and a nullable `data` json column remains
+  for overflow. Create tenants via `TenantService` (it generates the uuid id and the
+  `database` name matching stancl's `tenancy_db_name`).
 - `*.localhost` may not resolve automatically; for local curl use
   `--resolve acme.localhost:8000:127.0.0.1`.
 
