@@ -4,35 +4,37 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\User;
+use App\Models\SuperAdmin;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class AuthService
 {
     /**
-     * Attempt to authenticate a user and issue a Sanctum token.
+     * Authenticate a platform super admin (central) and issue a Sanctum token.
      *
-     * @return array{user: User, token: string}
+     * @return array{user: SuperAdmin, token: string}
      */
     public function login(string $email, string $password, string $deviceName = 'api'): array
     {
-        $user = User::where('email', $email)->first();
+        $admin = SuperAdmin::where('email', $email)->where('is_active', true)->first();
 
-        if (! $user || ! Hash::check($password, $user->password)) {
+        if (! $admin || ! Hash::check($password, $admin->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
+        $admin->forceFill(['last_login_at' => now()])->save();
+
         return [
-            'user' => $user,
-            'token' => $user->createToken($deviceName)->plainTextToken,
+            'user' => $admin,
+            'token' => $admin->createToken($deviceName)->plainTextToken,
         ];
     }
 
-    public function logout(User $user): void
+    public function logout(SuperAdmin $admin): void
     {
-        $user->currentAccessToken()?->delete();
+        $admin->currentAccessToken()?->delete();
     }
 }

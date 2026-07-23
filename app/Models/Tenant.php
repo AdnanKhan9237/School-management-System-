@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
@@ -46,5 +48,22 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'max_students' => 'integer',
             'max_teachers' => 'integer',
         ];
+    }
+
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(TenantSubscription::class, 'tenant_id');
+    }
+
+    public function activeSubscription(): HasOne
+    {
+        return $this->hasOne(TenantSubscription::class, 'tenant_id')
+            ->where('status', 'active')
+            ->latestOfMany('ends_at');
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class, 'tenant_id');
     }
 }
