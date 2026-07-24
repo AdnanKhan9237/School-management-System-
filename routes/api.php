@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AttendanceController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Auth\PasswordController;
 use App\Http\Controllers\Api\V1\Auth\SuperAdminAuthController;
@@ -105,5 +106,19 @@ Route::prefix('v1')->group(function () {
         Route::get('parents', [ParentController::class, 'index']);
         Route::post('parents', [ParentController::class, 'store']);
         Route::get('parents/{parent}/children', [ParentController::class, 'children'])->whereUuid('parent');
+
+        // Attendance
+        Route::prefix('attendance')->group(function () {
+            Route::post('mark', [AttendanceController::class, 'mark']);
+            Route::post('mark-single', [AttendanceController::class, 'markSingle']);
+            Route::get('today', [AttendanceController::class, 'today']);
+            Route::get('summary', [AttendanceController::class, 'summary']);
+            Route::get('report/monthly', [AttendanceController::class, 'monthlyReport']);
+            Route::get('report/low', [AttendanceController::class, 'lowReport']);
+            Route::get('export', [AttendanceController::class, 'export']);
+            Route::get('class/{class}', [AttendanceController::class, 'classOnDate'])->whereUuid('class');
+            Route::get('student/{student}', [AttendanceController::class, 'studentHistory'])->whereUuid('student');
+            Route::put('{attendance}', [AttendanceController::class, 'update'])->whereUuid('attendance');
+        });
     });
 });

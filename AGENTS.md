@@ -76,6 +76,11 @@ database, provisioned automatically by `stancl/tenancy`.
 - Student photos use `intervention/image` v4 (note: this build exposes `decodePath()` + `encode(new JpegEncoder())`, not `read()`/`toJpeg()`), resized to 400x400 and stored on the tenant-suffixed `public` disk.
 - `StudentService::attachStats()` batches attendance %/fee-status aggregates for list views (avoids N+1). Excel import/export use `App\Imports\StudentImport` / `App\Exports\StudentsExport` (Maatwebsite). `StudentRepository` is bound in `RepositoryServiceProvider`.
 
+### Attendance API
+- Tenant-scoped under `/api/v1/attendance/*` (same middleware as SIS). Bulk mark (`POST attendance/mark`) upserts records (updateOrCreate on student+class+date), then dispatches `MarkAttendanceJob` (queued via Redis/Horizon) to notify absent students' parents. The job passes only scalar data (ids/date) so it re-hydrates in the tenant context via stancl's QueueTenancyBootstrapper.
+- School-wide summary percentage = present / total (late/leave counted separately, matching the spec example). `AttendanceService::updatePercentageCache()` caches per-student % in the tenant-scoped cache. Note: Redis returns cached numeric values as strings, so `cachedPercentage()` casts back to float.
+- Reports: `report/monthly` (school/class/student scope), `report/low` (below threshold, default 75%), `export` (Excel via `App\Reports\AttendanceReport`).
+
 ### Lint / test / build
 - Lint: `./vendor/bin/pint` (auto-fix) or `./vendor/bin/pint --test` (check only).
 - Tests: `php artisan test`. Test env (see `phpunit.xml`) uses array cache/session
