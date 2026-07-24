@@ -70,6 +70,12 @@ database, provisioned automatically by `stancl/tenancy`.
 - School onboarding (`POST /super-admin/schools`) runs through `TenantOnboardingService`: it creates the central tenant row (which triggers stancl's create-DB + migrate pipeline), the subdomain, and the principal user, then emails credentials. It is NOT a SQL transaction (CREATE DATABASE can't be rolled back) — on failure it compensates by ending tenancy and `forceDelete()`-ing the tenant (which drops the DB). Always end tenancy before dropping a tenant DB or the open connection blocks `DROP DATABASE`.
 - `Tenant` uses SoftDeletes. A normal `delete()` (DELETE `/schools/{id}`) soft-deletes and KEEPS the tenant database; only `forceDelete()` drops the DB. This is enforced in `TenancyServiceProvider` (the `TenantDeleted` listener drops the DB only when `isForceDeleting()`). `deleted_at` is listed in `Tenant::getCustomColumns()` so the virtual-column trait keeps it a real column.
 
+### Student Information System (SIS) API
+- Tenant-scoped endpoints under `/api/v1/{students,classes,parents}` require `tenant.identify` + `tenant.active` + `auth:sanctum` (send `X-Tenant: <slug>` or use the subdomain). Literal routes (`students/export`, `students/import`) are declared before `students/{student}`, and `{student}`/`{class}`/`{parent}` are constrained with `whereUuid`.
+- Admission (`POST /students`) runs in a tenant-DB transaction via `StudentService::admit`: user (role=student) + student + auto admission number (`YYYY-NNNN`) + class link + current-month fee records + parent link + welcome SMS (logged; no gateway configured). Because pending fees have no payer yet, `fee_payments.payment_method` and `received_by` are nullable, and `FeePayment` only auto-generates a receipt number for paid/partial rows.
+- Student photos use `intervention/image` v4 (note: this build exposes `decodePath()` + `encode(new JpegEncoder())`, not `read()`/`toJpeg()`), resized to 400x400 and stored on the tenant-suffixed `public` disk.
+- `StudentService::attachStats()` batches attendance %/fee-status aggregates for list views (avoids N+1). Excel import/export use `App\Imports\StudentImport` / `App\Exports\StudentsExport` (Maatwebsite). `StudentRepository` is bound in `RepositoryServiceProvider`.
+
 ### Lint / test / build
 - Lint: `./vendor/bin/pint` (auto-fix) or `./vendor/bin/pint --test` (check only).
 - Tests: `php artisan test`. Test env (see `phpunit.xml`) uses array cache/session

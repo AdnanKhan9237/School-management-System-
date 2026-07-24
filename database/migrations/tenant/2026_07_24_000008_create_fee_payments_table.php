@@ -24,9 +24,11 @@ return new class extends Migration
             $table->date('due_date');
             $table->date('paid_date')->nullable();
             $table->enum('status', ['pending', 'partial', 'paid', 'overdue', 'waived']);
-            $table->enum('payment_method', ['cash', 'jazzcash', 'easypaisa', 'bank', 'cheque']);
+            // Nullable: only known once a payment is actually collected. Fee
+            // records are generated in "pending" state at admission time.
+            $table->enum('payment_method', ['cash', 'jazzcash', 'easypaisa', 'bank', 'cheque'])->nullable();
             $table->string('transaction_id')->nullable();
-            $table->uuid('received_by');
+            $table->uuid('received_by')->nullable();
             $table->string('receipt_number')->nullable();
             $table->text('remarks')->nullable();
 
@@ -42,7 +44,7 @@ return new class extends Migration
 
             $table->foreign('student_id')->references('id')->on('students')->cascadeOnDelete();
             $table->foreign('fee_structure_id')->references('id')->on('fee_structures')->cascadeOnDelete();
-            $table->foreign('received_by')->references('id')->on('users')->cascadeOnDelete();
+            $table->foreign('received_by')->references('id')->on('users')->nullOnDelete();
         });
     }
 

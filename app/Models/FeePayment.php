@@ -49,8 +49,10 @@ class FeePayment extends TenantModel
 
     protected static function booted(): void
     {
+        // Assign a receipt number only when a payment is actually recorded
+        // (not for auto-generated "pending" fee records).
         static::creating(function (FeePayment $payment) {
-            if (empty($payment->receipt_number)) {
+            if (empty($payment->receipt_number) && in_array($payment->status, ['paid', 'partial'], true)) {
                 $payment->receipt_number = static::generateReceiptNumber();
             }
         });

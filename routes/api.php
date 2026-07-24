@@ -3,6 +3,9 @@
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Auth\PasswordController;
 use App\Http\Controllers\Api\V1\Auth\SuperAdminAuthController;
+use App\Http\Controllers\Api\V1\ClassController;
+use App\Http\Controllers\Api\V1\ParentController;
+use App\Http\Controllers\Api\V1\StudentController;
 use App\Http\Controllers\Api\V1\SuperAdmin\AnalyticsController;
 use App\Http\Controllers\Api\V1\SuperAdmin\InvoiceController;
 use App\Http\Controllers\Api\V1\SuperAdmin\PlanController;
@@ -69,5 +72,38 @@ Route::prefix('v1')->group(function () {
             Route::get('me', [AuthController::class, 'me']);
             Route::post('change-password', [PasswordController::class, 'changePassword']);
         });
+    });
+
+    // ---- Tenant: Student Information System (SIS) -----------------------
+    Route::middleware(['tenant.identify', 'tenant.active', 'auth:sanctum'])->group(function () {
+        // Students (literal routes before {student} to avoid collisions)
+        Route::get('students/export', [StudentController::class, 'export']);
+        Route::post('students/import', [StudentController::class, 'import']);
+        Route::get('students', [StudentController::class, 'index']);
+        Route::post('students', [StudentController::class, 'store']);
+
+        Route::whereUuid('student')->group(function () {
+            Route::get('students/{student}', [StudentController::class, 'show']);
+            Route::put('students/{student}', [StudentController::class, 'update']);
+            Route::delete('students/{student}', [StudentController::class, 'destroy']);
+            Route::post('students/{student}/transfer', [StudentController::class, 'transfer']);
+            Route::get('students/{student}/attendance-summary', [StudentController::class, 'attendanceSummary']);
+            Route::get('students/{student}/fee-history', [StudentController::class, 'feeHistory']);
+            Route::get('students/{student}/results', [StudentController::class, 'results']);
+            Route::post('students/{student}/photo', [StudentController::class, 'photo']);
+            Route::post('students/{student}/link-parent', [StudentController::class, 'linkParent']);
+        });
+
+        // Classes
+        Route::get('classes', [ClassController::class, 'index']);
+        Route::post('classes', [ClassController::class, 'store']);
+        Route::get('classes/{class}', [ClassController::class, 'show'])->whereUuid('class');
+        Route::get('classes/{class}/students', [ClassController::class, 'students'])->whereUuid('class');
+        Route::get('classes/{class}/timetable', [ClassController::class, 'timetable'])->whereUuid('class');
+
+        // Parents
+        Route::get('parents', [ParentController::class, 'index']);
+        Route::post('parents', [ParentController::class, 'store']);
+        Route::get('parents/{parent}/children', [ParentController::class, 'children'])->whereUuid('parent');
     });
 });
