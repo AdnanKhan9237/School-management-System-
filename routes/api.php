@@ -5,7 +5,13 @@ use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Auth\PasswordController;
 use App\Http\Controllers\Api\V1\Auth\SuperAdminAuthController;
 use App\Http\Controllers\Api\V1\ClassController;
+use App\Http\Controllers\Api\V1\ExamController;
+use App\Http\Controllers\Api\V1\FeeController;
+use App\Http\Controllers\Api\V1\FeeStructureController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ParentController;
+use App\Http\Controllers\Api\V1\ReportCardController;
+use App\Http\Controllers\Api\V1\ResultController;
 use App\Http\Controllers\Api\V1\StudentController;
 use App\Http\Controllers\Api\V1\SuperAdmin\AnalyticsController;
 use App\Http\Controllers\Api\V1\SuperAdmin\InvoiceController;
@@ -119,6 +125,61 @@ Route::prefix('v1')->group(function () {
             Route::get('class/{class}', [AttendanceController::class, 'classOnDate'])->whereUuid('class');
             Route::get('student/{student}', [AttendanceController::class, 'studentHistory'])->whereUuid('student');
             Route::put('{attendance}', [AttendanceController::class, 'update'])->whereUuid('attendance');
+        });
+
+        // Fees
+        Route::prefix('fees')->group(function () {
+            Route::get('structures', [FeeStructureController::class, 'index']);
+            Route::post('structures', [FeeStructureController::class, 'store']);
+            Route::put('structures/{structure}', [FeeStructureController::class, 'update'])->whereUuid('structure');
+            Route::delete('structures/{structure}', [FeeStructureController::class, 'destroy'])->whereUuid('structure');
+
+            Route::get('pending', [FeeController::class, 'pending']);
+            Route::get('student/{student}', [FeeController::class, 'studentFees'])->whereUuid('student');
+            Route::post('collect', [FeeController::class, 'collect']);
+            Route::post('bulk-generate', [FeeController::class, 'bulkGenerate']);
+
+            Route::get('receipts/{payment}', [FeeController::class, 'receipt'])->whereUuid('payment');
+            Route::get('receipts/{payment}/pdf', [FeeController::class, 'receiptPdf'])->whereUuid('payment');
+            Route::get('receipts/student/{student}', [FeeController::class, 'studentReceipts'])->whereUuid('student');
+
+            Route::get('report/collection', [FeeController::class, 'collectionReport']);
+            Route::get('report/defaulters', [FeeController::class, 'defaulters']);
+            Route::get('report/summary', [FeeController::class, 'summary']);
+            Route::get('export', [FeeController::class, 'export']);
+        });
+
+        // Exams & Results
+        Route::get('exams', [ExamController::class, 'index']);
+        Route::post('exams', [ExamController::class, 'store']);
+        Route::whereUuid('exam')->group(function () {
+            Route::get('exams/{exam}', [ExamController::class, 'show']);
+            Route::put('exams/{exam}', [ExamController::class, 'update']);
+            Route::delete('exams/{exam}', [ExamController::class, 'destroy']);
+            Route::post('exams/{exam}/publish', [ExamController::class, 'publish']);
+            Route::post('exams/{exam}/results', [ResultController::class, 'store']);
+            Route::get('exams/{exam}/results', [ResultController::class, 'index']);
+            Route::get('exams/{exam}/analytics', [ExamController::class, 'analytics']);
+            Route::whereUuid('class')->group(function () {
+                Route::get('exams/{exam}/results/class/{class}', [ResultController::class, 'classResults']);
+            });
+        });
+        Route::put('results/{result}', [ResultController::class, 'update'])->whereUuid('result');
+
+        // Report Cards
+        Route::prefix('report-cards')->group(function () {
+            Route::get('student/{student}', [ReportCardController::class, 'student'])->whereUuid('student');
+            Route::get('class/{class}', [ReportCardController::class, 'forClass'])->whereUuid('class');
+            Route::get('pdf/{student}', [ReportCardController::class, 'pdf'])->whereUuid('student');
+        });
+
+        // Notifications
+        Route::prefix('notifications')->group(function () {
+            Route::get('/', [NotificationController::class, 'index']);
+            Route::post('send', [NotificationController::class, 'send']);
+            Route::post('broadcast', [NotificationController::class, 'broadcast']);
+            Route::get('my', [NotificationController::class, 'my']);
+            Route::put('{notification}/read', [NotificationController::class, 'markRead'])->whereUuid('notification');
         });
     });
 });

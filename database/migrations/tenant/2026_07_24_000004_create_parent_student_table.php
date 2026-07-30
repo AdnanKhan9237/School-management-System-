@@ -12,9 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('parent_student', function (Blueprint $table) {
-            // Pivot rows are inserted via belongsToMany::attach(), which bypasses
-            // Eloquent's HasUuids id generation, so default the uuid at the DB level.
-            $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
+            if (DB::getDriverName() === 'pgsql') {
+                $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
+            } else {
+                $table->uuid('id')->primary();
+            }
             $table->uuid('school_id');
 
             $table->uuid('parent_id');
