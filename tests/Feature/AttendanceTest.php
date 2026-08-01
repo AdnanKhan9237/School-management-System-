@@ -21,7 +21,7 @@ class AttendanceTest extends TestCase
     {
         $response = $this->postJson('/api/v1/attendance/mark', [
             'class_id' => '00000000-0000-0000-0000-000000000001',
-            'date'     => now()->toDateString(),
+            'date' => now()->toDateString(),
             'attendance' => [],
         ]);
 
@@ -59,10 +59,10 @@ class AttendanceTest extends TestCase
     {
         // school-wide % = present / (total - leave)  ← based on spec example
         $present = 410;
-        $absent  = 30;
-        $late    = 10;
-        $leave   = 0;
-        $total   = $present + $absent + $late + $leave;
+        $absent = 30;
+        $late = 10;
+        $leave = 0;
+        $total = $present + $absent + $late + $leave;
 
         $percentage = $total > 0 ? round(($present / $total) * 100, 1) : 0;
 

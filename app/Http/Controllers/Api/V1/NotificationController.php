@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
+use App\Models\Student;
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -81,7 +82,7 @@ class NotificationController extends Controller
             'message' => ['required', 'string', 'max:1000'],
         ]);
 
-        $query = \App\Models\Student::query();
+        $query = Student::query();
         if (! empty($validated['class_id'])) {
             $query->where('class_id', $validated['class_id']);
         }

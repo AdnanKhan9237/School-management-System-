@@ -2,8 +2,18 @@
 
 namespace Tests\Feature;
 
+use App\Models\Attendance;
+use App\Models\Exam;
+use App\Models\FeePayment;
+use App\Models\Invoice;
+use App\Models\Result;
+use App\Models\SchoolClass;
+use App\Models\Student;
+use App\Models\SubscriptionPlan;
 use App\Models\SuperAdmin;
 use App\Models\Tenant;
+use App\Models\TenantModel;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -18,13 +28,14 @@ class TenantIsolationTest extends TestCase
     use RefreshDatabase;
 
     private SuperAdmin $admin;
+
     private string $adminToken;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->admin      = SuperAdmin::factory()->create();
+        $this->admin = SuperAdmin::factory()->create();
         $this->adminToken = $this->admin->createToken('test', ['access'])->plainTextToken;
     }
 
@@ -67,8 +78,8 @@ class TenantIsolationTest extends TestCase
         $id1 = 'schoola';
         $id2 = 'schoolb';
 
-        $db1 = 'tenant' . $id1;
-        $db2 = 'tenant' . $id2;
+        $db1 = 'tenant'.$id1;
+        $db2 = 'tenant'.$id2;
 
         $this->assertNotEquals($db1, $db2);
     }
@@ -78,7 +89,7 @@ class TenantIsolationTest extends TestCase
         // TenantModel boot method should always set school_id
         // This is a compile-time check — verify the trait exists
         $this->assertTrue(
-            class_exists(\App\Models\TenantModel::class),
+            class_exists(TenantModel::class),
             'TenantModel base class must exist'
         );
     }
@@ -88,10 +99,10 @@ class TenantIsolationTest extends TestCase
         // SuperAdmin, Tenant, SubscriptionPlan, Invoice should always
         // use the central DB connection regardless of tenant context
         $centralModels = [
-            \App\Models\SuperAdmin::class,
-            \App\Models\Tenant::class,
-            \App\Models\SubscriptionPlan::class,
-            \App\Models\Invoice::class,
+            SuperAdmin::class,
+            Tenant::class,
+            SubscriptionPlan::class,
+            Invoice::class,
         ];
 
         foreach ($centralModels as $model) {
@@ -105,13 +116,13 @@ class TenantIsolationTest extends TestCase
     public function test_tenant_model_classes_exist(): void
     {
         $tenantModels = [
-            \App\Models\User::class,
-            \App\Models\Student::class,
-            \App\Models\SchoolClass::class,
-            \App\Models\FeePayment::class,
-            \App\Models\Attendance::class,
-            \App\Models\Exam::class,
-            \App\Models\Result::class,
+            User::class,
+            Student::class,
+            SchoolClass::class,
+            FeePayment::class,
+            Attendance::class,
+            Exam::class,
+            Result::class,
         ];
 
         foreach ($tenantModels as $model) {

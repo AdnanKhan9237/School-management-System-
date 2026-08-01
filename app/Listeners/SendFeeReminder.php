@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Listeners;
 
 use App\Events\FeeOverdue;
-use App\Models\FeePayment;
 use App\Models\Student;
+use App\Models\Tenant;
 use App\Services\NotificationService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
@@ -16,7 +16,7 @@ class SendFeeReminder implements ShouldQueue
 
     public function handle(FeeOverdue $event): void
     {
-        $tenant = \App\Models\Tenant::find($event->tenantId);
+        $tenant = Tenant::find($event->tenantId);
         if (! $tenant) {
             return;
         }
@@ -26,6 +26,7 @@ class SendFeeReminder implements ShouldQueue
         $student = Student::with(['user', 'parents.user'])->find($event->studentId);
         if (! $student) {
             tenancy()->end();
+
             return;
         }
 

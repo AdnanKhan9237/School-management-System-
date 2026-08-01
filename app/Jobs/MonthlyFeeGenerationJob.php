@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Models\Tenant;
 use App\Services\FeeService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Stancl\Tenancy\Contracts\TenantWithDatabase;
+use Illuminate\Support\Facades\Log;
 
 class MonthlyFeeGenerationJob implements ShouldQueue
 {
@@ -23,7 +24,7 @@ class MonthlyFeeGenerationJob implements ShouldQueue
 
     public function handle(FeeService $feeService): void
     {
-        $tenant = \App\Models\Tenant::find($this->tenantId);
+        $tenant = Tenant::find($this->tenantId);
         if (! $tenant) {
             return;
         }
@@ -32,7 +33,7 @@ class MonthlyFeeGenerationJob implements ShouldQueue
 
         $count = $feeService->generateBulkMonthlyFees($this->monthYear);
 
-        \Illuminate\Support\Facades\Log::info("Monthly fee generation complete for tenant {$this->tenantId}: {$count} records created.");
+        Log::info("Monthly fee generation complete for tenant {$this->tenantId}: {$count} records created.");
 
         tenancy()->end();
     }

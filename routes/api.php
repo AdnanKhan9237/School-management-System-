@@ -6,17 +6,23 @@ use App\Http\Controllers\Api\V1\Auth\PasswordController;
 use App\Http\Controllers\Api\V1\Auth\SuperAdminAuthController;
 use App\Http\Controllers\Api\V1\ClassController;
 use App\Http\Controllers\Api\V1\ExamController;
+use App\Http\Controllers\Api\V1\ExpenseController;
 use App\Http\Controllers\Api\V1\FeeController;
 use App\Http\Controllers\Api\V1\FeeStructureController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ParentController;
 use App\Http\Controllers\Api\V1\ReportCardController;
 use App\Http\Controllers\Api\V1\ResultController;
+use App\Http\Controllers\Api\V1\School\SchoolProfileController;
+use App\Http\Controllers\Api\V1\School\SchoolSettingsController;
+use App\Http\Controllers\Api\V1\StaffSalaryController;
 use App\Http\Controllers\Api\V1\StudentController;
 use App\Http\Controllers\Api\V1\SuperAdmin\AnalyticsController;
 use App\Http\Controllers\Api\V1\SuperAdmin\InvoiceController;
 use App\Http\Controllers\Api\V1\SuperAdmin\PlanController;
 use App\Http\Controllers\Api\V1\SuperAdmin\SchoolController;
+use App\Http\Controllers\Api\V1\TimetableController;
+use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -49,6 +55,7 @@ Route::prefix('v1')->group(function () {
             Route::post('schools/{school}/activate', [SchoolController::class, 'activate']);
             Route::get('schools/{school}/stats', [SchoolController::class, 'stats']);
             Route::post('schools/{school}/subscribe', [SchoolController::class, 'subscribe']);
+            Route::post('schools/{school}/reset-principal-password', [SchoolController::class, 'resetPrincipalPassword']);
 
             // Subscription plans
             Route::get('plans', [PlanController::class, 'index']);
@@ -57,6 +64,7 @@ Route::prefix('v1')->group(function () {
 
             // Billing
             Route::get('invoices', [InvoiceController::class, 'index']);
+            Route::post('invoices', [InvoiceController::class, 'store']);
             Route::get('invoices/{invoice}', [InvoiceController::class, 'show']);
             Route::post('invoices/{invoice}/mark-paid', [InvoiceController::class, 'markPaid']);
 
@@ -180,6 +188,42 @@ Route::prefix('v1')->group(function () {
             Route::post('broadcast', [NotificationController::class, 'broadcast']);
             Route::get('my', [NotificationController::class, 'my']);
             Route::put('{notification}/read', [NotificationController::class, 'markRead'])->whereUuid('notification');
+        });
+
+        // School Profile & Settings
+        Route::get('school/profile', [SchoolProfileController::class, 'show']);
+        Route::put('school/profile', [SchoolProfileController::class, 'update']);
+        Route::get('school/settings', [SchoolSettingsController::class, 'show']);
+        Route::put('school/settings', [SchoolSettingsController::class, 'update']);
+
+        // Timetable
+        Route::get('timetable', [TimetableController::class, 'index']);
+        Route::post('timetable', [TimetableController::class, 'store']);
+        Route::put('timetable/{timetable}', [TimetableController::class, 'update'])->whereUuid('timetable');
+        Route::delete('timetable/{timetable}', [TimetableController::class, 'destroy'])->whereUuid('timetable');
+
+        // Expenses
+        Route::get('expenses', [ExpenseController::class, 'index']);
+        Route::post('expenses', [ExpenseController::class, 'store']);
+        Route::get('expenses/{expense}', [ExpenseController::class, 'show'])->whereUuid('expense');
+        Route::put('expenses/{expense}', [ExpenseController::class, 'update'])->whereUuid('expense');
+        Route::delete('expenses/{expense}', [ExpenseController::class, 'destroy'])->whereUuid('expense');
+
+        // Staff Salaries
+        Route::get('salaries', [StaffSalaryController::class, 'index']);
+        Route::post('salaries', [StaffSalaryController::class, 'store']);
+        Route::get('salaries/{salary}', [StaffSalaryController::class, 'show'])->whereUuid('salary');
+        Route::put('salaries/{salary}', [StaffSalaryController::class, 'update'])->whereUuid('salary');
+        Route::delete('salaries/{salary}', [StaffSalaryController::class, 'destroy'])->whereUuid('salary');
+
+        // Users (Teachers / Accountants / Principals — staff management)
+        Route::get('users', [UserController::class, 'index']);
+        Route::post('users', [UserController::class, 'store']);
+        Route::whereUuid('user')->group(function () {
+            Route::get('users/{user}', [UserController::class, 'show']);
+            Route::put('users/{user}', [UserController::class, 'update']);
+            Route::delete('users/{user}', [UserController::class, 'destroy']);
+            Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword']);
         });
     });
 });

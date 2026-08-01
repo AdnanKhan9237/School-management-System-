@@ -18,6 +18,7 @@ class StudentTest extends TestCase
     use RefreshDatabase;
 
     private SuperAdmin $admin;
+
     private string $token;
 
     protected function setUp(): void
@@ -56,27 +57,27 @@ class StudentTest extends TestCase
         // Create first school
         $this->withHeader('Authorization', "Bearer {$this->token}")
             ->postJson('/api/v1/super-admin/schools', [
-                'name'             => 'Test School A',
-                'slug'             => 'testschool',
-                'principal_name'   => 'John Doe',
-                'principal_email'  => 'john@testschool.com',
-                'principal_phone'  => '+923001234567',
-                'city'             => 'Karachi',
-                'plan_id'          => '00000000-0000-0000-0000-000000000001',
-                'billing_cycle'    => 'monthly',
+                'name' => 'Test School A',
+                'slug' => 'testschool',
+                'principal_name' => 'John Doe',
+                'principal_email' => 'john@testschool.com',
+                'principal_phone' => '+923001234567',
+                'city' => 'Karachi',
+                'plan_id' => '00000000-0000-0000-0000-000000000001',
+                'billing_cycle' => 'monthly',
             ]);
 
         // Try to create second school with same slug
         $response = $this->withHeader('Authorization', "Bearer {$this->token}")
             ->postJson('/api/v1/super-admin/schools', [
-                'name'             => 'Test School B',
-                'slug'             => 'testschool', // duplicate
-                'principal_name'   => 'Jane Doe',
-                'principal_email'  => 'jane@testschool.com',
-                'principal_phone'  => '+923001234568',
-                'city'             => 'Lahore',
-                'plan_id'          => '00000000-0000-0000-0000-000000000001',
-                'billing_cycle'    => 'monthly',
+                'name' => 'Test School B',
+                'slug' => 'testschool', // duplicate
+                'principal_name' => 'Jane Doe',
+                'principal_email' => 'jane@testschool.com',
+                'principal_phone' => '+923001234568',
+                'city' => 'Lahore',
+                'plan_id' => '00000000-0000-0000-0000-000000000001',
+                'billing_cycle' => 'monthly',
             ]);
 
         $response->assertStatus(422);
@@ -86,7 +87,7 @@ class StudentTest extends TestCase
     {
         // Verify the admission number format YYYY-NNNN via regex
         $pattern = '/^\d{4}-\d{4}$/';
-        $admissionNumber = date('Y') . '-0001';
+        $admissionNumber = date('Y').'-0001';
 
         $this->assertMatchesRegularExpression($pattern, $admissionNumber);
     }

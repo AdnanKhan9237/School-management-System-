@@ -56,7 +56,7 @@ class ResultController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => count($created) . ' result(s) saved.',
+            'message' => count($created).' result(s) saved.',
             'data' => ResultResource::collection(collect($created)->load('student.user', 'subject')),
         ]);
     }

@@ -193,12 +193,55 @@ class SchoolController extends Controller
             'due_date' => (clone $startsAt)->addDays(7)->toDateString(),
         ]);
 
-        $school->forceFill(['status' => 'active'])->save();
+        // Cancel previous active subscriptions
+        TenantSubscription::where('tenant_id', $school->getTenantKey())
+            ->where('id', '!=', $subscription->id)
+            ->where('status', 'active')
+            ->update(['status' => 'cancelled']);
+
+        $school->forceFill([
+            'status' => 'active',
+            'plan'   => $plan->slug,
+        ])->save();
 
         return response()->json([
             'success' => true,
             'message' => 'Plan assigned to school.',
             'data' => new SubscriptionResource($subscription->load('plan')),
         ], 201);
+    }
+    public function resetPrincipalPassword(\Illuminate\Http\Request $request, Tenant $school): JsonResponse
+    {
+        $data = $request->validate([
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $result = [];
+
+        $school->run(function () use ($data, &$result) {
+            $principal = User::where('role', 'principal')->latest()->first();
+
+            if (! $principal) {
+                $result = ['found' => false];
+                return;
+            }
+
+            $principal->update([
+                'password'              => \Illuminate\Support\Facades\Hash::make($data['password']),
+                'failed_login_attempts' => 0,
+                'locked_until'          => null,
+            ]);
+
+            $result = ['found' => true, 'email' => $principal->email];
+        });
+
+        if (! ($result['found'] ?? false)) {
+            return response()->json(['success' => false, 'message' => 'Principal user not found in this school.'], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Password reset for principal ({$result['email']}).",
+        ]);
     }
 }

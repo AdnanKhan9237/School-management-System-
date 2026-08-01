@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\SuperAdmin>
+ * @extends Factory<SuperAdmin>
  */
 class SuperAdminFactory extends Factory
 {
@@ -17,10 +17,10 @@ class SuperAdminFactory extends Factory
     public function definition(): array
     {
         return [
-            'id'        => (string) Str::uuid(),
-            'name'      => $this->faker->name(),
-            'email'     => $this->faker->unique()->safeEmail(),
-            'password'  => Hash::make('password'),
+            'id' => (string) Str::uuid(),
+            'name' => $this->faker->name(),
+            'email' => $this->faker->unique()->safeEmail(),
+            'password' => Hash::make('password'),
             'is_active' => true,
         ];
     }

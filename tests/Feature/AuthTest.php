@@ -17,13 +17,13 @@ class AuthTest extends TestCase
     public function test_super_admin_can_login_with_valid_credentials(): void
     {
         $admin = SuperAdmin::factory()->create([
-            'email'    => 'admin@test.com',
+            'email' => 'admin@test.com',
             'password' => Hash::make('password123'),
             'is_active' => true,
         ]);
 
         $response = $this->postJson('/api/v1/super-admin/login', [
-            'email'    => 'admin@test.com',
+            'email' => 'admin@test.com',
             'password' => 'password123',
         ]);
 
@@ -37,12 +37,12 @@ class AuthTest extends TestCase
     public function test_super_admin_login_fails_with_wrong_password(): void
     {
         SuperAdmin::factory()->create([
-            'email'    => 'admin@test.com',
+            'email' => 'admin@test.com',
             'password' => Hash::make('correct-password'),
         ]);
 
         $response = $this->postJson('/api/v1/super-admin/login', [
-            'email'    => 'admin@test.com',
+            'email' => 'admin@test.com',
             'password' => 'wrong-password',
         ]);
 
@@ -77,7 +77,7 @@ class AuthTest extends TestCase
     public function test_tenant_login_fails_without_tenant_header(): void
     {
         $response = $this->postJson('/api/v1/auth/login', [
-            'email'    => 'user@school.com',
+            'email' => 'user@school.com',
             'password' => 'password',
         ]);
 

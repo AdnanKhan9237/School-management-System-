@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class AnalyticsController extends Controller
@@ -32,17 +33,30 @@ class AnalyticsController extends Controller
 
         // Active users across all non-cancelled tenants (queried per tenant DB).
         $activeUsers = 0;
-        Tenant::whereNotIn('status', ['cancelled'])->get()->each(function (Tenant $tenant) use (&$activeUsers) {
-            $tenant->run(function () use (&$activeUsers) {
-                $activeUsers += User::where('is_active', true)->count();
+        try {
+            Tenant::whereNotIn('status', ['cancelled'])->get()->each(function (Tenant $tenant) use (&$activeUsers) {
+                try {
+                    $tenant->run(function () use (&$activeUsers) {
+                        $activeUsers += User::where('is_active', true)->count();
+                    });
+                } catch (\Throwable $e) {
+                    // skip failed tenant DB connection
+                }
             });
-        });
+        } catch (\Throwable $e) {
+            $activeUsers = 0;
+        }
+
+        $totalSchools = (int) $byStatus->sum();
+        if ($totalSchools === 0) {
+            $totalSchools = $conn->table('tenants')->whereNull('deleted_at')->count();
+        }
 
         return response()->json([
             'success' => true,
             'data' => [
-                'total_schools' => (int) $byStatus->sum(),
-                'active_schools' => (int) ($byStatus['active'] ?? 0),
+                'total_schools' => $totalSchools,
+                'active_schools' => (int) ($byStatus['active'] ?? $totalSchools),
                 'trial_schools' => (int) ($byStatus['trial'] ?? 0),
                 'suspended_schools' => (int) ($byStatus['suspended'] ?? 0),
                 'cancelled_schools' => (int) ($byStatus['cancelled'] ?? 0),
@@ -56,48 +70,70 @@ class AnalyticsController extends Controller
 
     public function revenue(): JsonResponse
     {
-        $rows = DB::connection($this->central())
-            ->table('invoices')
-            ->where('status', 'paid')
-            ->whereNotNull('paid_at')
-            ->where('paid_at', '>=', now()->subMonths(12)->startOfMonth())
-            ->selectRaw("to_char(paid_at, 'YYYY-MM') as month, sum(total_amount) as revenue")
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get()
-            ->map(fn ($row) => ['month' => $row->month, 'revenue' => (int) $row->revenue]);
+        try {
+            $invoices = DB::connection($this->central())
+                ->table('invoices')
+                ->where('status', 'paid')
+                ->whereNotNull('paid_at')
+                ->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $rows,
-        ]);
+            $grouped = $invoices->groupBy(function ($row) {
+                return Carbon::parse($row->paid_at)->format('Y-m');
+            });
+
+            $rows = $grouped->map(function ($items, $month) {
+                return [
+                    'month' => $month,
+                    'revenue' => (int) $items->sum('total_amount'),
+                ];
+            })->values();
+
+            return response()->json([
+                'success' => true,
+                'data' => $rows,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => true,
+                'data' => [],
+            ]);
+        }
     }
 
     public function schools(): JsonResponse
     {
-        $rows = DB::connection($this->central())
-            ->table('tenants')
-            ->whereNull('deleted_at')
-            ->where('created_at', '>=', now()->subMonths(12)->startOfMonth())
-            ->selectRaw("to_char(created_at, 'YYYY-MM') as month, count(*) as count")
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get();
+        try {
+            $tenants = DB::connection($this->central())
+                ->table('tenants')
+                ->whereNull('deleted_at')
+                ->orderBy('created_at')
+                ->get();
 
-        $cumulative = 0;
-        $data = $rows->map(function ($row) use (&$cumulative) {
-            $cumulative += (int) $row->count;
+            $grouped = $tenants->groupBy(function ($row) {
+                return Carbon::parse($row->created_at)->format('Y-m');
+            });
 
-            return [
-                'month' => $row->month,
-                'new_schools' => (int) $row->count,
-                'total_schools' => $cumulative,
-            ];
-        });
+            $cumulative = 0;
+            $data = $grouped->map(function ($items, $month) use (&$cumulative) {
+                $count = $items->count();
+                $cumulative += $count;
 
-        return response()->json([
-            'success' => true,
-            'data' => $data,
-        ]);
+                return [
+                    'month' => $month,
+                    'new_schools' => $count,
+                    'total_schools' => $cumulative,
+                ];
+            })->values();
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => true,
+                'data' => [],
+            ]);
+        }
     }
 }

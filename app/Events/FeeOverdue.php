@@ -16,7 +16,7 @@ class FeeOverdue
         public readonly string $studentId,
         public readonly string $feePaymentId,
         public readonly string $monthYear,
-        public readonly int    $amountDue,
+        public readonly int $amountDue,
         public readonly string $tenantId,
     ) {}
 }

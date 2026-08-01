@@ -6,6 +6,7 @@ namespace App\Listeners;
 
 use App\Events\StudentMarkedAbsent;
 use App\Models\Student;
+use App\Models\Tenant;
 use App\Services\NotificationService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
@@ -15,7 +16,7 @@ class SendAbsenceAlert implements ShouldQueue
 
     public function handle(StudentMarkedAbsent $event): void
     {
-        $tenant = \App\Models\Tenant::find($event->tenantId);
+        $tenant = Tenant::find($event->tenantId);
         if (! $tenant) {
             return;
         }
@@ -25,6 +26,7 @@ class SendAbsenceAlert implements ShouldQueue
         $student = Student::with(['user', 'parents.user'])->find($event->studentId);
         if (! $student) {
             tenancy()->end();
+
             return;
         }
 

@@ -47,8 +47,8 @@ class FeeTest extends TestCase
     {
         // Fine = late_fine_per_day × days_overdue
         $lateFinePerDay = 100; // paisa per day
-        $daysOverdue    = 15;
-        $expectedFine   = $lateFinePerDay * $daysOverdue;
+        $daysOverdue = 15;
+        $expectedFine = $lateFinePerDay * $daysOverdue;
 
         $this->assertEquals(1500, $expectedFine);
     }
@@ -56,8 +56,8 @@ class FeeTest extends TestCase
     public function test_receipt_number_format_is_correct(): void
     {
         // Format: RCT-YYYY-NNNNNN
-        $year   = date('Y');
-        $seq    = 1;
+        $year = date('Y');
+        $seq = 1;
         $number = sprintf('RCT-%d-%06d', $year, $seq);
 
         $this->assertMatchesRegularExpression('/^RCT-\d{4}-\d{6}$/', $number);
@@ -68,7 +68,7 @@ class FeeTest extends TestCase
     {
         // Rs. 3,000 = 300,000 paisa
         $rupees = 3000;
-        $paisa  = $rupees * 100;
+        $paisa = $rupees * 100;
 
         $this->assertEquals(300000, $paisa);
     }
