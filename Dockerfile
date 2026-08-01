@@ -27,7 +27,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 RUN chmod -R 775 storage bootstrap/cache
 
 # Expose port
-EXPOSE 8080
+EXPOSE 8000
 
 # Start Laravel
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080
+CMD php artisan config:cache && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
