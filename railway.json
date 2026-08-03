@@ -1,11 +1,9 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
-  "build": {
-    "builder": "NIXPACKS"
-  },
   "deploy": {
-    "startCommand": "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=$PORT",
-    "healthcheckPath": "/up",
+    "startCommand": "php artisan config:clear && php artisan serve --host=0.0.0.0 --port=$PORT",
+    "healthcheckPath": "/",
     "restartPolicyType": "ON_FAILURE"
   }
 }
+
