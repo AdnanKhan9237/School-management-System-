@@ -29,6 +29,7 @@ return [
     // e.g. http://localhost, http://acme.localhost, https://acme.example.com
     'allowed_origins_patterns' => [
         '#^https?://([a-z0-9-]+\.)?'.preg_quote(env('CENTRAL_DOMAIN', 'localhost'), '#').'(:\d+)?$#i',
+        '#^https?://([a-z0-9-]+\.)?vercel\.app$#i',
     ],
 
     'allowed_headers' => ['*'],
