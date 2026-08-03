@@ -55,10 +55,15 @@ export default function LoginPage() {
         router.push("/school/dashboard");
       }
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        "Login failed. Please check your credentials.";
-      setError(msg);
+      const errorObj = err as { response?: { status?: number; data?: { message?: string } } };
+      if (!errorObj.response) {
+        setError("Unable to connect to the backend server. Please check your backend connection or NEXT_PUBLIC_API_URL environment variable.");
+      } else if (errorObj.response.status === 500) {
+        setError("Server Error (500): The backend database or service is unavailable. Please verify PostgreSQL / Redis are running.");
+      } else {
+        const msg = errorObj.response.data?.message ?? "Login failed. Please check your credentials.";
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
